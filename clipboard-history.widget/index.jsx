@@ -461,6 +461,13 @@ const setFilter = (kind) => (e) => {
   run("true");
 };
 
+// Memo of the last render: Übersicht re-runs the command every 2s, and
+// re-rendering the card on every tick is what makes it flicker. We return a
+// referentially-stable element when the visible content is unchanged so React
+// touches no DOM. Live "age" text is intentionally left out of the signature so
+// it can't reintroduce per-tick churn (it refreshes whenever the set changes).
+let __cbSig = null, __cbEl = null;
+
 export const render = (props) => {
   if (isLoading(props)) return <Skel tint={T.tintBlue} />;
 
@@ -482,7 +489,15 @@ export const render = (props) => {
   const page = all.slice(off, off + PAGE);
   const step = (delta) => () => { setOff(Math.min(maxOff, Math.max(0, off + delta))); run("true"); };
 
-  return (
+  const sig = JSON.stringify({
+    filter, off, maxOff, total: all.length,
+    rows: page.map((e, i) => [e.kind, e.pinned,
+      e.kind === "KEY" ? maskOf(e.content) : e.content, off === 0 && i === 0]),
+  });
+  if (sig === __cbSig && __cbEl) return __cbEl;
+  __cbSig = sig;
+
+  return (__cbEl = (
     <div aria-label={`Clipboard stack, ${all.length} entries`}>
       <DragHandle k="stack" />
       <ResizeHandle k="stack" />
@@ -511,5 +526,5 @@ export const render = (props) => {
         </div>
       )}
     </div>
-  );
+  ));
 };
