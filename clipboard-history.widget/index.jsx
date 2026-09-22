@@ -367,43 +367,46 @@ const HKEY = "ws:stack:hist";
 const PINKEY = "ws:stack:pins";
 const FILTERKEY = "ws:stack:filter";
 const MAXHIST = 16;
-
 const FONTS = "clipboard-history.widget/fonts";
-// The history as a thermal receipt: paper stock with a fibre grain, a dot-
-// matrix face, star rules, a red PINNED stamp, a torn bottom edge, and a
-// barcode. Old entries fade the way thermal print does. Click a line to copy
-// it, the [KIND] tag to filter, PIN to keep it.
-export const className = card("light", 300, 372, ...LAYOUT.stack) + `
+// A small thermal receipt printer: a matte black body with a status LED and a
+// FEED key, and the receipt curling out of the slot below it. Every clip is a
+// line on the tape: kind, age, the text. Click a line to copy it again, the
+// kind to filter, PIN to keep it, FEED to advance the tape.
+export const className = card("light", 300, 380, ...LAYOUT.stack) + `
   @font-face { font-family: "VT323"; src: url("${FONTS}/VT323-400.woff2") format("woff2"); }
-  @font-face { font-family: "Barlow Condensed"; src: url("${FONTS}/BarlowCondensed-700.woff2") format("woff2"); font-weight: 700; }
-  --ink: #2A2622; --paper: #F8F4EA; --red: #C8322B;
-  padding: 16px 18px 24px; border-radius: 3px 3px 0 0; backdrop-filter: none; overflow: hidden; user-select:none; -webkit-user-select:none;
-  background: linear-gradient(180deg, #FBF8F0 0%, var(--paper) 100%);
-  box-shadow: 0 24px 40px rgba(0,0,0,0.45), 0 1px 0 rgba(0,0,0,0.06);
-  -webkit-mask: linear-gradient(#000, #000) 0 0 / 100% calc(100% - 9px) no-repeat, conic-gradient(from 135deg at 50% 100%, #000 0 90deg, #0000 90deg) 0 100% / 12px 9px repeat-x;
-  mask: linear-gradient(#000, #000) 0 0 / 100% calc(100% - 9px) no-repeat, conic-gradient(from 135deg at 50% 100%, #000 0 90deg, #0000 90deg) 0 100% / 12px 9px repeat-x;
-  font-family: "VT323", "Menlo", monospace; color: var(--ink);
-  .rcpt { position:absolute; inset: 16px 18px 24px; display:flex; flex-direction:column; }
-  &::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:0.5; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"); }
-  .ws-drag { top: 6px; left: 6px; color:#9a9184; background: rgba(0,0,0,0.04); } .ws-resize { bottom: 14px; right: 6px; color:#9a9184; background: rgba(0,0,0,0.04); }
-  .logo { text-align:center; font-size: 24px; line-height: 1; letter-spacing: 3px; }
-  .sub { text-align:center; font-size: 12px; letter-spacing: 1.5px; color: #7A7266; margin-top: 2px; }
-  .rule { text-align:center; font-size: 13px; letter-spacing: 3px; color: #8A8276; line-height: 1.1; margin: 5px 0; white-space:nowrap; overflow:hidden; }
-  .meta { display:flex; justify-content:space-between; font-size: 12px; letter-spacing: 1px; color:#5A5248; }
-  .rows { flex:1; display:flex; flex-direction:column; min-height:0; }
-  .ln { position:relative; padding: 5px 0 4px; cursor:pointer; border-bottom: 1px dashed rgba(42,38,34,0.18); }
-  .ln:last-child { border-bottom: 0; }
-  .l1 { display:flex; align-items:center; gap: 8px; font-size: 12px; letter-spacing: 1px; color:#5A5248; }
-  .kind { cursor:pointer; padding: 0 2px; } .kind.active { background: var(--ink); color: var(--paper); }
-  .age { margin-left:auto; }
-  .txt { font-size: 15px; line-height: 1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top: 1px; }
-  .pin { position:absolute; right: 0; bottom: 5px; font-size: 11px; letter-spacing: 1px; color:#8A8276; cursor:pointer; padding: 0 2px; }
-  .pin:hover { color: var(--ink); }
-  .stamp { position:absolute; right: 34px; top: 4px; font: 700 8px/1 "Barlow Condensed", sans-serif; letter-spacing: 1.6px; color: var(--red); border: 1.5px solid var(--red); padding: 2px 4px 1px; transform: rotate(-9deg); opacity: 0.85; mix-blend-mode: multiply; }
-  .pg { display:flex; justify-content:center; gap: 14px; font-size: 13px; letter-spacing: 2px; margin-top: 2px; }
-  .chev { cursor:pointer; padding: 0 6px; } .chev.off { opacity: 0.25; cursor:default; }
-  .bar { height: 22px; margin: 4px 18px 0; background: repeating-linear-gradient(90deg, var(--ink) 0 1px, #0000 1px 2px, var(--ink) 2px 4px, #0000 4px 5px, var(--ink) 5px 6px, #0000 6px 9px, var(--ink) 9px 11px, #0000 11px 12px, var(--ink) 12px 13px, #0000 13px 16px); opacity: 0.85; }
-  .thanks { text-align:center; font-size: 12px; letter-spacing: 2px; color:#7A7266; margin-top: 4px; }
+  --mono: "VT323", "Menlo", monospace; --ink: #2B2B2B;
+  background: transparent; box-shadow: none; backdrop-filter: none; padding: 0; overflow: visible; user-select:none; -webkit-user-select:none;
+  .ws-drag { top: 8px; left: 12px; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.12); } .ws-resize { bottom: 14px; right: 24px; color: #7a7466; background: rgba(0,0,0,0.06); }
+  .printer { position:absolute; left: 0; top: 0; width: 300px; height: 64px; border-radius: 14px 14px 6px 6px; z-index: 3;
+             background: linear-gradient(180deg, #3A3A3C 0%, #232325 55%, #1A1A1C 100%);
+             box-shadow: 0 18px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 0 0 1px #0E0E10; }
+  .lid { position:absolute; left: 14px; right: 14px; top: 8px; height: 20px; border-radius: 4px; background: linear-gradient(180deg, #2C2C2E, #1C1C1E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px #0E0E10; }
+  .slot { position:absolute; left: 12px; right: 12px; bottom: 5px; height: 8px; border-radius: 2px; background: #0A0A0B; box-shadow: inset 0 2px 3px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.08); }
+  .led { position:absolute; left: 22px; top: 40px; width: 6px; height: 6px; border-radius: 50%; background: #3DDC84; box-shadow: 0 0 6px rgba(61,220,132,0.9); }
+  .ptxt { position:absolute; left: 34px; top: 38px; font: 400 10px/1 var(--mono); color: #8E8E93; letter-spacing: 1px; }
+  .feed { position:absolute; right: 16px; top: 35px; width: 34px; height: 14px; border-radius: 3px; cursor:pointer; background: linear-gradient(180deg, #4A4A4E, #2E2E31); box-shadow: 0 1px 0 #0E0E10, inset 0 1px 0 rgba(255,255,255,0.15); font: 400 9px/14px var(--mono); color: #C7C7CC; text-align:center; letter-spacing: 1px; }
+  .feed:active { transform: translateY(1px); }
+  .paper { position:absolute; left: 18px; top: 50px; width: 264px; bottom: 0; z-index: 1; background: #FBFAF4;
+           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"), linear-gradient(180deg, rgba(0,0,0,0.30) 0, rgba(0,0,0,0) 28px);
+           box-shadow: 0 14px 24px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(0,0,0,0.12);
+           -webkit-mask: linear-gradient(#000, #000) top / 100% calc(100% - 7px) no-repeat, linear-gradient(45deg, transparent 0 4.95px, #000 5px) bottom / 10px 7px repeat-x, linear-gradient(-45deg, transparent 0 4.95px, #000 5px) bottom / 10px 7px repeat-x; }
+  .rcpt { position:absolute; left: 30px; right: 30px; top: 74px; bottom: 16px; display:flex; flex-direction:column; font-family: var(--mono); color: var(--ink); z-index: 2; }
+  .logo { font-size: 22px; line-height: 1; text-align:center; letter-spacing: 3px; color: #1F1F1F; }
+  .sub { font-size: 11px; line-height: 1.1; text-align:center; letter-spacing: 1px; color: #5A5A5A; margin-top: 3px; }
+  .rule { font-size: 11px; line-height: 1; text-align:center; color: #6E6E6E; margin: 5px 0; white-space: pre; overflow:hidden; }
+  .meta { display:flex; justify-content:space-between; font-size: 11px; line-height: 1; color: #4A4A4A; letter-spacing: 0.5px; }
+  .rows { flex: 1; min-height: 0; display:flex; flex-direction:column; gap: 7px; padding-top: 3px; }
+  .ln { position:relative; cursor:pointer; padding-right: 34px; }
+  .ln:hover .txt { color: #000; }
+  .l1 { display:flex; justify-content:space-between; font-size: 11px; line-height: 1; color: #5A5A5A; letter-spacing: 0.5px; }
+  .kind { cursor:pointer; } .kind.active { color: #000; text-decoration: underline; }
+  .txt { font-size: 15px; line-height: 1.05; color: #262626; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow: ellipsis; }
+  .pin { position:absolute; right: 0; top: 0; font-size: 10px; line-height: 1; color: #7A7A7A; cursor:pointer; letter-spacing: 0.5px; } .pin:hover { color: #000; }
+  .stamp { position:absolute; right: 0; bottom: 0; font-size: 9px; line-height: 1; color: #B8322C; border: 1px solid #B8322C; padding: 1px 3px; transform: rotate(-6deg); opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; }
+  .pg { display:flex; justify-content:space-between; font-size: 11px; line-height: 1; color: #4A4A4A; letter-spacing: 0.5px; }
+  .chev { cursor:pointer; padding: 0 6px; } .chev.off { opacity: 0.3; cursor: default; }
+  .bar { height: 22px; margin: 6px 14px 4px; background: repeating-linear-gradient(90deg, #1F1F1F 0 2px, transparent 2px 3px, #1F1F1F 3px 4px, transparent 4px 7px, #1F1F1F 7px 10px, transparent 10px 11px, #1F1F1F 11px 12px, transparent 12px 15px); }
+  .thanks { font-size: 10px; line-height: 1; text-align:center; letter-spacing: 1px; color: #6E6E6E; }
 `;
 // True for values that look like credentials, so they can be masked.
 const isSecret = (s) =>
@@ -499,32 +502,37 @@ export const render = (props) => {
   if (filter) all = all.filter((e) => e.kind === filter);
   const maxOff = Math.max(0, all.length - PAGE); const off = Math.min(getOff(), maxOff); const page = all.slice(off, off + PAGE);
   const step = (delta) => () => { setOff(Math.min(maxOff, Math.max(0, off + delta))); run("true"); };
+  const feed = () => { setOff(off < maxOff ? Math.min(maxOff, off + PAGE) : 0); run("true"); };
   const sig = JSON.stringify({ filter, off, maxOff, sample, total: all.length, pins: pins.length, rows: page.map((e, i) => [e.kind, e.pinned, e.kind === "KEY" ? maskOf(e.content) : e.content]) });
   if (sig === __cbSig && __cbEl) return __cbEl;
   __cbSig = sig;
   return (__cbEl = (
-    <div className="rcpt" aria-label={`Clipboard receipt, ${all.length} entries`}>
+    <div aria-label={`Clipboard receipt, ${all.length} entries`}>
+      <div className="paper" />
+      <div className="printer"><div className="lid" /><span className="led" /><span className="ptxt">READY</span><span className="feed" title="Advance the tape" onClick={feed}>FEED</span><div className="slot" /></div>
       <DragHandle k="stack" />
       <ResizeHandle k="stack" />
-      <div className="logo">CLIPBOARD</div>
-      <div className="sub">MACOS PASTEBOARD · LOCAL ONLY</div>
-      <div className="rule">* * * * * * * * * * * * * * * *</div>
-      <div className="meta"><span>ITEMS {String(all.length).padStart(2, "0")}</span><span>PINNED {String(pins.length).padStart(2, "0")}</span><span>{sample ? "SAMPLE" : filter ? `FILTER ${filter}` : hhmm()}</span></div>
-      <div className="rule">- - - - - - - - - - - - - - - - -</div>
-      <div className="rows">
-        {page.length ? page.map((e, i) => (
-          <div className="ln" key={i} style={{ opacity: e.pinned ? 1 : FADE[Math.min(i, FADE.length - 1)] * 0.5 + 0.5 }} onClick={() => run(`printf %s ${shq(e.content)} | pbcopy`)}>
-            <div className="l1"><span className={`kind ${filter === e.kind ? "active" : ""}`} onClick={setFilter(e.kind)}>[{e.kind}]</span><span className="age">{e.ts ? ago(e.ts) : "kept"}</span></div>
-            <div className="txt">{e.kind === "KEY" ? maskOf(e.content) : e.content}</div>
-            {e.pinned ? <span className="stamp">Pinned</span> : null}
-            <span className="pin" onClick={togglePin(e.content)}>{e.pinned ? "UNPIN" : "PIN"}</span>
-          </div>
-        )) : <div className="txt" style={{ textAlign: "center", padding: "18px 0", color: "#8A8276" }}>{filter ? `NO ${filter} ENTRIES` : "NOTHING COPIED YET"}</div>}
+      <div className="rcpt">
+        <div className="logo">CLIPBOARD</div>
+        <div className="sub">MACOS PASTEBOARD · LOCAL ONLY</div>
+        <div className="rule">* * * * * * * * * * * * * * * *</div>
+        <div className="meta"><span>ITEMS {String(all.length).padStart(2, "0")}</span><span>PINNED {String(pins.length).padStart(2, "0")}</span><span>{sample ? "SAMPLE" : filter ? `FILTER ${filter}` : hhmm()}</span></div>
+        <div className="rule">- - - - - - - - - - - - - - - - -</div>
+        <div className="rows">
+          {page.length ? page.map((e, i) => (
+            <div className="ln" key={i} style={{ opacity: e.pinned ? 1 : FADE[Math.min(i, FADE.length - 1)] * 0.4 + 0.6 }} onClick={() => run(`printf %s ${shq(e.content)} | pbcopy`)}>
+              <div className="l1"><span className={`kind ${filter === e.kind ? "active" : ""}`} onClick={setFilter(e.kind)}>[{e.kind}]</span><span className="age">{e.ts ? ago(e.ts) : "kept"}</span></div>
+              <div className="txt">{e.kind === "KEY" ? maskOf(e.content) : e.content}</div>
+              {e.pinned ? <span className="stamp">Pinned</span> : null}
+              <span className="pin" onClick={togglePin(e.content)}>{e.pinned ? "UNPIN" : "PIN"}</span>
+            </div>
+          )) : <div className="txt" style={{ textAlign: "center", padding: "18px 0", color: "#8A8276" }}>{filter ? `NO ${filter} ENTRIES` : "NOTHING COPIED YET"}</div>}
+        </div>
+        <div className="rule">- - - - - - - - - - - - - - - - -</div>
+        {all.length > PAGE ? <div className="pg"><span className={`chev ${off <= 0 ? "off" : ""}`} onClick={off > 0 ? step(-PAGE) : undefined}>&lt;</span><span>PAGE {Math.floor(off / PAGE) + 1} OF {Math.ceil(all.length / PAGE)}</span><span className={`chev ${off >= maxOff ? "off" : ""}`} onClick={off < maxOff ? step(PAGE) : undefined}>&gt;</span></div> : <div className="pg"><span /><span>PAGE 1 OF 1</span><span /></div>}
+        <div className="bar" />
+        <div className="thanks">{sample ? "COPY SOMETHING TO START THE TAPE" : "CLICK A LINE TO COPY IT AGAIN"}</div>
       </div>
-      <div className="rule">- - - - - - - - - - - - - - - - -</div>
-      {all.length > PAGE ? <div className="pg"><span className={`chev ${off <= 0 ? "off" : ""}`} onClick={off > 0 ? step(-PAGE) : undefined}>&lt;</span><span>PAGE {Math.floor(off / PAGE) + 1} OF {Math.ceil(all.length / PAGE)}</span><span className={`chev ${off >= maxOff ? "off" : ""}`} onClick={off < maxOff ? step(PAGE) : undefined}>&gt;</span></div> : null}
-      <div className="bar" />
-      <div className="thanks">{sample ? "COPY SOMETHING TO START THE TAPE" : "CLICK A LINE TO COPY IT AGAIN"}</div>
     </div>
   ));
 };

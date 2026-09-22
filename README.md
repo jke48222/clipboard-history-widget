@@ -1,6 +1,6 @@
 # clipboard-history
 
-> Your clipboard history as a depth-faded stack, with pinning, secret masking, and kind filters.
+> Your clipboard history printed by a thermal receipt printer, with pinning, secret masking, and kind filters.
 
 [![Release](https://img.shields.io/github/v/release/jke48222/clipboard-history-widget?label=release)](https://github.com/jke48222/clipboard-history-widget/releases/latest) [![License: MIT](https://img.shields.io/github/license/jke48222/clipboard-history-widget)](LICENSE) ![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey)
 
@@ -12,7 +12,7 @@ runs on any Mac with no extra files beyond the bundled assets.
 
 ![screenshot](media/screenshot.png)
 
-The history prints as a thermal receipt: paper with a fibre grain, a dot-matrix face, star rules, a red PINNED stamp, a barcode, and a torn bottom edge; old entries fade like thermal print. Typefaces: VT323 and Barlow Condensed. All fonts are under the SIL Open Font License; see `clipboard-history.widget/fonts/OFL.txt`.
+The history is a small thermal receipt printer: a matte black body with a status LED and a FEED key, and the receipt curling out of the slot below it with a dot-matrix face, star rules, a red PINNED stamp, a barcode, and a torn edge. Click a line to copy it again, its kind to filter, PIN to keep it, FEED to advance the tape. Typeface: VT323. All fonts are under the SIL Open Font License; see `clipboard-history.widget/fonts/OFL.txt`.
 
 ## Before and after
 
