@@ -12,13 +12,17 @@ runs on any Mac with no extra files beyond the bundled assets.
 
 ![screenshot](media/screenshot.png)
 
+The history prints as a thermal receipt: paper with a fibre grain, a dot-matrix face, star rules, a red PINNED stamp, a barcode, and a torn bottom edge; old entries fade like thermal print. Typefaces: VT323 and Barlow Condensed. All fonts are under the SIL Open Font License; see `clipboard-history.widget/fonts/OFL.txt`.
+
+## Before and after
+
+![Before and after](media/before-after.png)
+
 ### On the desktop
 
 The widget running alongside the full set:
 
-![The Übersicht widget suite running on a desktop](https://raw.githubusercontent.com/jke48222/widget-suite/main/homescreen.gif)
-
-[Full-resolution video](media/homescreen.mp4)
+![The Übersicht widget suite composed on one desktop](https://raw.githubusercontent.com/jke48222/widget-suite/main/homescreen.png)
 
 ## Requirements
 

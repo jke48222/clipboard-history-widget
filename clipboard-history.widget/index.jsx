@@ -1,4 +1,4 @@
-import { React, run } from "uebersicht";
+import { React } from "uebersicht";
 // --- Inlined design system (self-contained; formerly theme.js) ---
 // Shared design system for the widget set: color tokens, fonts, layout, the
 // common card shell, drag/resize handles, a last-known-good cache, and the
@@ -131,7 +131,7 @@ const card = (variant, w, h, x = 0, y = 0) => `
   .ws-drag  { position:absolute; top:6px; left:6px; z-index:30;
               width:18px; height:18px; border-radius:6px;
               display:flex; align-items:center; justify-content:center;
-              font-size:11px; line-height:1; cursor:grab; opacity:0.22;
+              font-size:11px; line-height:1; cursor:grab; opacity:0.42;
               transition:opacity .15s ease; user-select:none;
               -webkit-user-select:none;
               color:${variant === "dark" ? T.onDarkMute : T.inkMute};
@@ -143,7 +143,7 @@ const card = (variant, w, h, x = 0, y = 0) => `
   .ws-resize { position:absolute; bottom:5px; right:5px; z-index:30;
                width:16px; height:16px; border-radius:5px;
                display:flex; align-items:center; justify-content:center;
-               font-size:11px; line-height:1; cursor:nwse-resize; opacity:0.22;
+               font-size:11px; line-height:1; cursor:nwse-resize; opacity:0.42;
                transition:opacity .15s ease; user-select:none;
                -webkit-user-select:none;
                color:${variant === "dark" ? T.onDarkMute : T.inkMute};
@@ -344,7 +344,6 @@ const resolve = (key, props, parse, mock) => {
   return { data: mock, mock: true };
 };
 // --- End inlined design system ---
-
 // Clipboard history as a depth-faded stack, newest on top.
 //
 // macOS exposes only the current pasteboard to a widget, so history is built
@@ -369,28 +368,43 @@ const PINKEY = "ws:stack:pins";
 const FILTERKEY = "ws:stack:filter";
 const MAXHIST = 16;
 
-export const className = card("dark", 360, 200, ...LAYOUT.stack) + `
-  padding: 14px 16px; display:flex; flex-direction:column;
-  .rows  { flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:2px; padding-top:16px; }
-  .row   { display:flex; gap:8px; margin-bottom:7px; align-items:flex-start; }
-  .mark  { width:1.5px; flex:0 0 1.5px; border-radius:1px; margin-top:2px; }
-  .meta  { min-width:0; flex:1; cursor:pointer; }
-  .head  { display:flex; gap:6px; align-items:baseline; }
-  .kind  { ${caption(T.onDarkDim)} font-size:8px; cursor:pointer; }
-  .kind.active { color:${T.tintBlue}; }
-  .age   { ${caption("rgba(143,148,158,0.6)")} font-size:8px; }
-  .body  { font-family:${serif}; font-style:italic; font-size:13px; color:${T.onDark};
-           white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
-  .star  { flex:0 0 auto; font-size:11px; line-height:1.4; cursor:pointer;
-           color:${T.onDarkMute}; user-select:none; }
-  .star.on { color:${T.tintOrange}; }
-  .pager { display:flex; align-items:center; justify-content:space-between;
-           margin-top:auto; ${caption(T.onDarkMute)} font-size:8px; }
-  .chev  { min-width:44px; min-height:22px; display:flex; align-items:center;
-           justify-content:center; cursor:pointer; user-select:none; font-size:13px; }
-  .chev.off { opacity:0.25; cursor:default; }
+const FONTS = "clipboard-history.widget/fonts";
+// The history as a thermal receipt: paper stock with a fibre grain, a dot-
+// matrix face, star rules, a red PINNED stamp, a torn bottom edge, and a
+// barcode. Old entries fade the way thermal print does. Click a line to copy
+// it, the [KIND] tag to filter, PIN to keep it.
+export const className = card("light", 300, 372, ...LAYOUT.stack) + `
+  @font-face { font-family: "VT323"; src: url("${FONTS}/VT323-400.woff2") format("woff2"); }
+  @font-face { font-family: "Barlow Condensed"; src: url("${FONTS}/BarlowCondensed-700.woff2") format("woff2"); font-weight: 700; }
+  --ink: #2A2622; --paper: #F8F4EA; --red: #C8322B;
+  padding: 16px 18px 24px; border-radius: 3px 3px 0 0; backdrop-filter: none; overflow: hidden; user-select:none; -webkit-user-select:none;
+  background: linear-gradient(180deg, #FBF8F0 0%, var(--paper) 100%);
+  box-shadow: 0 24px 40px rgba(0,0,0,0.45), 0 1px 0 rgba(0,0,0,0.06);
+  -webkit-mask: linear-gradient(#000, #000) 0 0 / 100% calc(100% - 9px) no-repeat, conic-gradient(from 135deg at 50% 100%, #000 0 90deg, #0000 90deg) 0 100% / 12px 9px repeat-x;
+  mask: linear-gradient(#000, #000) 0 0 / 100% calc(100% - 9px) no-repeat, conic-gradient(from 135deg at 50% 100%, #000 0 90deg, #0000 90deg) 0 100% / 12px 9px repeat-x;
+  font-family: "VT323", "Menlo", monospace; color: var(--ink);
+  .rcpt { position:absolute; inset: 16px 18px 24px; display:flex; flex-direction:column; }
+  &::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:0.5; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"); }
+  .ws-drag { top: 6px; left: 6px; color:#9a9184; background: rgba(0,0,0,0.04); } .ws-resize { bottom: 14px; right: 6px; color:#9a9184; background: rgba(0,0,0,0.04); }
+  .logo { text-align:center; font-size: 24px; line-height: 1; letter-spacing: 3px; }
+  .sub { text-align:center; font-size: 12px; letter-spacing: 1.5px; color: #7A7266; margin-top: 2px; }
+  .rule { text-align:center; font-size: 13px; letter-spacing: 3px; color: #8A8276; line-height: 1.1; margin: 5px 0; white-space:nowrap; overflow:hidden; }
+  .meta { display:flex; justify-content:space-between; font-size: 12px; letter-spacing: 1px; color:#5A5248; }
+  .rows { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .ln { position:relative; padding: 5px 0 4px; cursor:pointer; border-bottom: 1px dashed rgba(42,38,34,0.18); }
+  .ln:last-child { border-bottom: 0; }
+  .l1 { display:flex; align-items:center; gap: 8px; font-size: 12px; letter-spacing: 1px; color:#5A5248; }
+  .kind { cursor:pointer; padding: 0 2px; } .kind.active { background: var(--ink); color: var(--paper); }
+  .age { margin-left:auto; }
+  .txt { font-size: 15px; line-height: 1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top: 1px; }
+  .pin { position:absolute; right: 0; bottom: 5px; font-size: 11px; letter-spacing: 1px; color:#8A8276; cursor:pointer; padding: 0 2px; }
+  .pin:hover { color: var(--ink); }
+  .stamp { position:absolute; right: 34px; top: 4px; font: 700 8px/1 "Barlow Condensed", sans-serif; letter-spacing: 1.6px; color: var(--red); border: 1.5px solid var(--red); padding: 2px 4px 1px; transform: rotate(-9deg); opacity: 0.85; mix-blend-mode: multiply; }
+  .pg { display:flex; justify-content:center; gap: 14px; font-size: 13px; letter-spacing: 2px; margin-top: 2px; }
+  .chev { cursor:pointer; padding: 0 6px; } .chev.off { opacity: 0.25; cursor:default; }
+  .bar { height: 22px; margin: 4px 18px 0; background: repeating-linear-gradient(90deg, var(--ink) 0 1px, #0000 1px 2px, var(--ink) 2px 4px, #0000 4px 5px, var(--ink) 5px 6px, #0000 6px 9px, var(--ink) 9px 11px, #0000 11px 12px, var(--ink) 12px 13px, #0000 13px 16px); opacity: 0.85; }
+  .thanks { text-align:center; font-size: 12px; letter-spacing: 2px; color:#7A7266; margin-top: 4px; }
 `;
-
 // True for values that look like credentials, so they can be masked.
 const isSecret = (s) =>
   /(?:^|\b)(?:sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{16,}|gho_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+\.)/.test(s) ||
@@ -468,63 +482,49 @@ const setFilter = (kind) => (e) => {
 // it can't reintroduce per-tick churn (it refreshes whenever the set changes).
 let __cbSig = null, __cbEl = null;
 
+const hhmm = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 export const render = (props) => {
   if (isLoading(props)) return <Skel tint={T.tintBlue} />;
-
   pushClip((props.output || "").replace(/\s+/g, " ").trim());
-
-  // Pinned entries (resolved to their kind) first, then unpinned history.
-  const pins = readJSON(PINKEY, []);
-  const hist = readJSON(HKEY, []);
+  const pins = readJSON(PINKEY, []); const hist = readJSON(HKEY, []);
   const pinnedEntries = pins.map((content) => ({ content, kind: classify(content), ts: null, pinned: true }));
   const rest = hist.filter((e) => !pins.includes(e.content)).map((e) => ({ ...e, pinned: false }));
-  let all = [...pinnedEntries, ...rest];
-
+  let all = [...pinnedEntries, ...rest]; let sample = false;
+  if (!all.length) { sample = true; const now = Date.now(); all = [
+    { content: "https://github.com/jke48222/widget-suite", kind: "URL", ts: now - 40e3, pinned: false },
+    { content: "#F5561E", kind: "HEX", ts: now - 6e5, pinned: false },
+    { content: "~/Library/Application Support/Übersicht/widgets", kind: "PATH", ts: now - 2.4e6, pinned: false },
+    { content: "sk-live-" + "x".repeat(24), kind: "KEY", ts: now - 7.2e6, pinned: false } ]; }
   const filter = getFilter();
   if (filter) all = all.filter((e) => e.kind === filter);
-  if (!all.length) return <Empty text={filter ? `No ${filter} entries` : "Nothing copied yet"} />;
-
-  const maxOff = Math.max(0, all.length - PAGE);
-  const off = Math.min(getOff(), maxOff);
-  const page = all.slice(off, off + PAGE);
+  const maxOff = Math.max(0, all.length - PAGE); const off = Math.min(getOff(), maxOff); const page = all.slice(off, off + PAGE);
   const step = (delta) => () => { setOff(Math.min(maxOff, Math.max(0, off + delta))); run("true"); };
-
-  const sig = JSON.stringify({
-    filter, off, maxOff, total: all.length,
-    rows: page.map((e, i) => [e.kind, e.pinned,
-      e.kind === "KEY" ? maskOf(e.content) : e.content, off === 0 && i === 0]),
-  });
+  const sig = JSON.stringify({ filter, off, maxOff, sample, total: all.length, pins: pins.length, rows: page.map((e, i) => [e.kind, e.pinned, e.kind === "KEY" ? maskOf(e.content) : e.content]) });
   if (sig === __cbSig && __cbEl) return __cbEl;
   __cbSig = sig;
-
   return (__cbEl = (
-    <div aria-label={`Clipboard stack, ${all.length} entries`}>
+    <div className="rcpt" aria-label={`Clipboard receipt, ${all.length} entries`}>
       <DragHandle k="stack" />
       <ResizeHandle k="stack" />
+      <div className="logo">CLIPBOARD</div>
+      <div className="sub">MACOS PASTEBOARD · LOCAL ONLY</div>
+      <div className="rule">* * * * * * * * * * * * * * * *</div>
+      <div className="meta"><span>ITEMS {String(all.length).padStart(2, "0")}</span><span>PINNED {String(pins.length).padStart(2, "0")}</span><span>{sample ? "SAMPLE" : filter ? `FILTER ${filter}` : hhmm()}</span></div>
+      <div className="rule">- - - - - - - - - - - - - - - - -</div>
       <div className="rows">
-        {page.map((e, i) => (
-          <div className="row" key={i} style={{ opacity: e.pinned ? 1 : FADE[i] }}>
-            <div className="mark" style={{ background: e.pinned ? T.tintOrange : (off === 0 && i === 0 ? T.tintBlue : "transparent") }} />
-            <div className="meta" onClick={() => run(`printf %s ${shq(e.content)} | pbcopy`)}>
-              <div className="head">
-                <span className={`kind ${filter === e.kind ? "active" : ""}`} onClick={setFilter(e.kind)}>{e.kind}</span>
-                <span className="age">{e.ts ? ago(e.ts) : "pinned"}</span>
-              </div>
-              <div className="body">{e.kind === "KEY" ? maskOf(e.content) : e.content}</div>
-            </div>
-            <span className={`star ${e.pinned ? "on" : ""}`} title="Pin" onClick={togglePin(e.content)}>
-              {e.pinned ? "★" : "☆"}
-            </span>
+        {page.length ? page.map((e, i) => (
+          <div className="ln" key={i} style={{ opacity: e.pinned ? 1 : FADE[Math.min(i, FADE.length - 1)] * 0.5 + 0.5 }} onClick={() => run(`printf %s ${shq(e.content)} | pbcopy`)}>
+            <div className="l1"><span className={`kind ${filter === e.kind ? "active" : ""}`} onClick={setFilter(e.kind)}>[{e.kind}]</span><span className="age">{e.ts ? ago(e.ts) : "kept"}</span></div>
+            <div className="txt">{e.kind === "KEY" ? maskOf(e.content) : e.content}</div>
+            {e.pinned ? <span className="stamp">Pinned</span> : null}
+            <span className="pin" onClick={togglePin(e.content)}>{e.pinned ? "UNPIN" : "PIN"}</span>
           </div>
-        ))}
+        )) : <div className="txt" style={{ textAlign: "center", padding: "18px 0", color: "#8A8276" }}>{filter ? `NO ${filter} ENTRIES` : "NOTHING COPIED YET"}</div>}
       </div>
-      {all.length > PAGE && (
-        <div className="pager">
-          <span className={`chev ${off <= 0 ? "off" : ""}`} onClick={off > 0 ? step(-PAGE) : undefined}>&#x2039;</span>
-          <span>{Math.floor(off / PAGE) + 1} / {Math.ceil(all.length / PAGE)}</span>
-          <span className={`chev ${off >= maxOff ? "off" : ""}`} onClick={off < maxOff ? step(PAGE) : undefined}>&#x203A;</span>
-        </div>
-      )}
+      <div className="rule">- - - - - - - - - - - - - - - - -</div>
+      {all.length > PAGE ? <div className="pg"><span className={`chev ${off <= 0 ? "off" : ""}`} onClick={off > 0 ? step(-PAGE) : undefined}>&lt;</span><span>PAGE {Math.floor(off / PAGE) + 1} OF {Math.ceil(all.length / PAGE)}</span><span className={`chev ${off >= maxOff ? "off" : ""}`} onClick={off < maxOff ? step(PAGE) : undefined}>&gt;</span></div> : null}
+      <div className="bar" />
+      <div className="thanks">{sample ? "COPY SOMETHING TO START THE TAPE" : "CLICK A LINE TO COPY IT AGAIN"}</div>
     </div>
   ));
 };
